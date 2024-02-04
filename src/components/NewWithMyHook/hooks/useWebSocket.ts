@@ -1,57 +1,119 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 
 const WSCONSTS = {
-  OPEN: 'open',
-  MESSAGE: 'message'
+    OPEN: 'open',
+    MESSAGE: 'message'
+}
+
+
+export enum ReadyState {
+    UNINSTANTIATED = -1,
+    CONNECTING = 0,
+    OPEN = 1,
+    CLOSING = 2,
+    CLOSED = 3,
 }
 
 interface IWSOptions {
-  autoconnect?: boolean
-  protocols?: string | string[]
+    autoconnect?: boolean
+    autoreconnect?: boolean
+    autoreconnectTimeout?: number
+    protocols?: string | string[]
 }
 
-export default function useWebSocket(url: string, options?: IWSOptions) {
-  const [lastMessage, setLastMessage] = useState<MessageEvent>()
-  const [OnConnect, setOnConnect] = useState<any>({})
+interface IWS {
+    lastMessage: MessageEvent | undefined
+    onConnect: Event
+    reconnect: () => void
+    sendMessage: (data: string) => void
+    connect: () => void
+    disconnect: (code?: number, reason?: string) => void
+    readyState: React.MutableRefObject<number | undefined>
+    Socket: WebSocket | null
+}
 
-  const [readyState, setReadyState] = useState<WebSocket['readyState']>()
+/*
+  * Provides a connection to WebSocket
+  * @param {String} url The url of WebSocket
+  * @param {IWSOptions} options Configuration of the websocket connection
+  * @return {IWS} An object with methods and state of WebSocket
+  * */
+export default function useWebSocket(
+    url: string,
+    options: IWSOptions = {
+        autoconnect: true,
+        autoreconnect: true,
+        autoreconnectTimeout: 2000,
+    }
+): IWS {
+    const memoizedOptions = useMemo<IWSOptions>(() => (options), [])
 
-  const WS = useRef<WebSocket | null>(null)
+    const [lastMessage, setLastMessage] = useState<MessageEvent>()
+    const [onConnect, setOnConnect] = useState<Event>({} as Event)
 
-  const sendMessage = (data: string) => {
-    WS.current?.send(data)
-  }
+    const readyState = useRef<WebSocket['readyState'] | undefined>(undefined)
 
-  const Connect = useCallback(() => {
-    WS.current = new WebSocket(url, options?.protocols)
-    
-    WS.current.addEventListener(WSCONSTS.OPEN, (event: any) => {
-      setOnConnect(event)
+    const WS = useRef<WebSocket | null>(null)
+
+    const sendMessage = (data: string) => {
+        WS.current?.send(data)
+    }
+
+    const connect = useCallback(() => {
+        WS.current = new WebSocket(url, memoizedOptions?.protocols)
+
+        WS.current.addEventListener(WSCONSTS.OPEN, (event: Event) => {
+            setOnConnect(event)
+        })
+
+        readyState.current = WS.current.readyState
+
+        WS.current.onclose = () => {
+            if (memoizedOptions.autoreconnect) {
+                setTimeout(() => {
+                    connect()
+                }, memoizedOptions.autoreconnectTimeout)
+            }
+
+        }
+
+        WS.current.onmessage = (e: MessageEvent) => {
+            setLastMessage(e)
+        }
+
+    }, [url, memoizedOptions])
+
+    useEffect(() => {
+        console.log('options: ', memoizedOptions)
+        if (memoizedOptions.autoconnect) {
+            connect()
+        }
+
+    }, [url, connect, memoizedOptions])
+
+    const reconnect = () => {
+        if (WS.current) {
+            WS.current.onclose = () => {}
+            WS.current?.close()
+        }
+        connect()
+    }
+
+    const disconnect = (code?: number, reason?: string) => {
+        if (WS.current) {
+            WS.current.onclose = () => {}
+            WS.current?.close(code, reason)
+        }
+    }
+
+    return ({
+        lastMessage,
+        onConnect,
+        reconnect,
+        sendMessage,
+        connect,
+        disconnect,
+        readyState,
+        Socket: WS.current,
     })
-
-    setReadyState(WS.current.readyState)
-
-    WS.current.onclose = () => {
-      setTimeout(() => {
-        Connect()
-      }, 2000)
-    }
-
-    WS.current.onmessage = (e: MessageEvent) => {
-      setLastMessage(e)
-    }
-
-  }, [])
-
-  useEffect(() => {
-    Connect()
-  }, [])
-
-  const Reconnect = () => {
-    Connect()
-  }
-
-  return ({
-    lastMessage, OnConnect, Reconnect, sendMessage, readyState, Connect
-  })
 }
