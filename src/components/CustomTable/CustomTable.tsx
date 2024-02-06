@@ -1,11 +1,30 @@
 'use client';
 
 import { Link, Table, Chip, Typography, Box, Stack, Card } from '@mui/joy';
-// import { parseObj } from '@/utils/helperFunctions';
+import { parseObj } from '../../utils/helperFunctions';
 import React from 'react';
 // import { ISchema, } from '@/utils/models';
 // import { usePathname } from 'next/navigation'
 // import { Arrow } from '../Icons/Icons';
+
+export interface ISchema {
+    [key: string]: {
+      dataField: string;
+
+      // customCell?: FC<{ data: any; props?: any } | string> | ((data: string) => JSX.Element);
+      customCell?: any
+      customCellProps?: object;
+      headerCustomCell?: React.FC<any> | JSX.Element
+
+      href?: string;
+      columnClassName?: React.CSSProperties;
+      // cardArea?: cardAreas;
+      cardOnlyCustomCell?: React.FC<any>;
+      relativeHref?: string;
+      externalHref?: string
+    };
+  }
+
 
 function replaceWithObjectValues(inputString: string, replacementObject: any) {
     const replacedString = inputString.replace(/{([^}]+)}/g, (match, key) => {
@@ -58,7 +77,7 @@ const CustomTable: React.FC<ICustomTable> = ({
                                                  // sortDirection,
                                                  ...props
                                              }) => {
-    const pathname = usePathname()
+    const pathname = window.location.href //usePathname()
     // console.log('Table Render!!!')
     const arrColumns: any[] = [];
     for (let column in columns) {
@@ -240,16 +259,17 @@ const CustomTable: React.FC<ICustomTable> = ({
                                                         }}
                                                         endDecorator={
                                                             (Sorting.selectedSortParam === column.dataField) ? (
-                                                                <Arrow
-                                                                    // color={'primary'}
-                                                                    style={{
-                                                                        // color: 'rgba(var(--foreground-rgb))',
-                                                                        color: 'inherit',
-                                                                        width: '1rem',
-                                                                        height: '1rem',
-                                                                        opacity: 1,
-                                                                    }}
-                                                                />
+                                                                // <Arrow
+                                                                //     // color={'primary'}
+                                                                //     style={{
+                                                                //         // color: 'rgba(var(--foreground-rgb))',
+                                                                //         color: 'inherit',
+                                                                //         width: '1rem',
+                                                                //         height: '1rem',
+                                                                //         opacity: 1,
+                                                                //     }}
+                                                                // />
+                                                                <></>
                                                             ) : null
                                                         }
                                                     >

@@ -7,8 +7,8 @@ import { Box, Button, Chip, Input, List, ListItem, Sheet, Stack, Typography } fr
 
 import useWebSocket from './hooks/useWebSocket';
 
-// const BASEURL = 'ws://192.168.1.49:8000/ws'
-const BASEURL = 'wss://echo.websocket.orgx';
+const BASEURL = 'ws://192.168.1.49:8000/ws'
+// const BASEURL = 'wss://echo.websocket.org';
 
 function Orange() {
   // const [, render] = useReducer( p => !p, false)
@@ -21,9 +21,9 @@ function Orange() {
       connect,
         disconnect,
         readyState,
-  } = useWebSocket(BASEURL, {
-      // autoconnect: false
-    })
+  } = useWebSocket(BASEURL, { 
+    // autoconnect: false 
+  })
 
   const [InputText, setInputText] = useState('')
   // const InputRef = useRef<HTMLInputElement | null>(null)
@@ -71,21 +71,7 @@ function Orange() {
           <Button onClick={() => {
               disconnect()
           }}>Disconnect</Button>
-        {/* <Typography >Connection status: <Chip color={
-          WSState.connected === 0 ?
-            'success'
-            :
-            'neutral'
-        }
-        >{
-            readyState === 0 ?
-              'Online'
-              :
-              'Offline'
-          }</Chip>
-        </Typography> */}
           <Typography
-              ref={readyState}
           >State: {JSON.stringify(readyState.current)}</Typography>
         <Box sx={{ display: 'flex' }}>
             <Typography>Network status:</Typography>
