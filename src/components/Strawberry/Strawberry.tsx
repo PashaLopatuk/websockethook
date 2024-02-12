@@ -5,8 +5,40 @@ import CustomTable, { ISchema } from '../CustomTable/CustomTable'
 import useNetworkState from '../../hooks/useNetworkState'
 import useMyNetworkState from '../../hooks/useMyNetworkState'
 
-// const BASEURL = 'ws://192.168.1.49:8000/ws'
-const BASEURL = 'wss://free.blr2.piesocket.com/v3/1?api_key=y6geV6iaULTRxAPkpQ8G0M314bwQLmYmrE5AkZXy&notify_self=1'
+const BASEURL = 'ws://192.168.1.49:8000/ws'
+// const BASEURL = 'wss://free.blr2.piesocket.com/v3/1?api_key=y6geV6iaULTRxAPkpQ8G0M314bwQLmYmrE5AkZXy&notify_self=1'
+
+const ModemSchema: ISchema = {
+  "Device EUI": {
+    dataField: 'device_eui',
+  },
+  "Network status": {
+    dataField: 'network_server_status',
+    customCell: String
+  },
+  "Uplink DateTime": {
+    dataField: 'uplink_datetime'
+  },
+  "Packet Type": {
+    dataField: 'packet_type'
+  },
+  "Meter serial": {
+    dataField: 'meter_serial_number'
+  },
+  "Battery": {
+    dataField: 'battery_level'
+  },
+  "RSSI level": {
+    dataField: 'rssi_level'
+  },
+  "SNR level": {
+    dataField: 'snr_level',
+    customCell: String,
+  },
+  "Assigment": {
+    dataField: 'assigment'
+  },
+}
 
 const Strawberry = () => {
   const {
@@ -108,14 +140,16 @@ const Strawberry = () => {
         columns={
           response.length ?
             {
-              ...Object.keys(response[0])
-                .map(Key => ({ [Key]: { dataField: Key } }))
-                .reduce((Keys: ISchema, key: ISchema) => (
-                  {
-                    ...Keys,
-                    ...key,
-                  }
-                ))
+              ...ModemSchema
+              // ...Object.keys(response[0])
+              //   .map(Key => ({ [Key]: { dataField: Key } }))
+              //   .reduce((Keys: ISchema, key: ISchema) => (
+              //     {
+              //       ...Keys,
+              //       ...key,
+              //     }
+              //   ))
+
             }
             :
             {}
